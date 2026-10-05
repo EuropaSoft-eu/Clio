@@ -852,6 +852,39 @@ body::before {
   transition: all .15s;
 }
 .add-here-btn:hover { background: var(--gold); color: var(--bar); }
+/* Pendant un glissement, la ligne « ＋ Bloc ici » devient une fente de dépôt */
+.add-here .fente-label { display: none; }
+#page-workspace.block-dragging .add-here,
+#page-workspace.note-dragging .add-here {
+  /* Sans transition : les fentes des notes se calent sur leur taille finale. */
+  transition: none;
+  opacity: 1; height: 32px; margin-top: .2rem; margin-bottom: .4rem;
+  border: 1px dashed rgba(var(--gold-rgb),.55); border-radius: 3px;
+  background: rgba(var(--gold-rgb),.05);
+}
+#page-workspace.block-dragging .add-here::before,
+#page-workspace.note-dragging .add-here::before { display: none; }
+#page-workspace.block-dragging .add-here .add-here-btn,
+#page-workspace.note-dragging .add-here .add-here-btn { display: none; }
+#page-workspace.block-dragging .add-here .fente-label,
+#page-workspace.note-dragging .add-here .fente-label {
+  display: inline; color: var(--gold); font-size: .78rem;
+  font-family: 'Crimson Pro', serif; letter-spacing: .04em; pointer-events: none;
+}
+.add-here.fente-active, .fente-note.fente-active {
+  background: rgba(var(--gold-rgb),.2) !important; border-style: solid !important; border-color: var(--gold) !important;
+}
+/* Fente de la colonne des notes, en calque au niveau des fentes du texte */
+.fente-note {
+  position: absolute; left: .5rem; right: .3rem; z-index: 5;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px dashed rgba(var(--gold-rgb),.55); border-radius: 3px;
+  background: var(--cream);
+}
+.fente-note span {
+  color: var(--gold); font-size: .74rem; font-family: 'Crimson Pro', serif;
+  letter-spacing: .04em; pointer-events: none;
+}
 /* Sans survol possible (tactile), l'insertion doit rester franchement visible */
 @media (hover: none) {
   .add-here { opacity: .75; height: 26px; }
@@ -937,11 +970,11 @@ body::before {
   display: flex; align-items: center; justify-content: center;
 }
 #page-workspace.block-dragging .chapter-insert {
-  height: 20px; margin: 1px 0;
+  height: 30px; margin: 2px 0;
   border: 1px dashed rgba(var(--gold-rgb),.35); border-radius: 2px;
 }
 #page-workspace.block-dragging .chapter-insert span {
-  font-size: .62rem; letter-spacing: .04em; color: rgba(var(--on-bar-rgb),.45);
+  font-size: .74rem; letter-spacing: .04em; color: rgba(var(--on-bar-rgb),.75);
   font-family: 'Crimson Pro', serif; pointer-events: none;
 }
 .chapter-insert.active {
@@ -3243,7 +3276,7 @@ const APP_CONFIG = {
   github:      "",
   technologie: "HTML · CSS · JavaScript",
   langue:      "Français",
-  build:       "2026-10-04-tauri"
+  build:       "2026-10-05-tauri"
 };
 /* Chargement d'AppInfo.json, une fois, au démarrage. Même chemin relatif sur
    le web (servi depuis src/, mis en cache par le service worker) et sous Tauri
@@ -4364,7 +4397,9 @@ function renderChapters(){
   function insertZone(idx){
     const z = document.createElement('div');
     z.className = 'chapter-insert';
-    z.innerHTML = '<span>＋ Nouveau chapitre ici</span>';
+    z.innerHTML = idx === book.chapters.length
+      ? '<span>＋ Nouveau chapitre à la fin</span>'
+      : '<span>＋ Nouveau chapitre ici</span>';
     z.addEventListener('dragover', e=>{
       if(!blockDragInfo) return;
       e.preventDefault(); e.stopPropagation();
@@ -4499,6 +4534,107 @@ function fusionTextes(a, b) {
   if (!a) return b;
   if (!b) return a;
   return a + '\n\n' + b;
+}
+
+/* ── Fentes d'insertion pendant un glissement ──
+   Entre deux blocs, une fente « ＋ Déposer ici » reçoit ce qu'on glisse
+   sans rien écraser : dans le texte, un bloc s'y insère et une note y devient
+   un nouveau bloc ; dans les notes, le texte d'un bloc y devient une nouvelle
+   note. Une fente ne vit que le temps du glissement. */
+const blocVide = () => ({ id: uid(), title: '', text: '', accentIdx: 0 });
+
+function armerFente(el, deposer) {
+  const actif = () => !!(blockDragInfo || noteDragInfo);
+  el.addEventListener('dragover', e => {
+    if (!actif()) return;
+    e.preventDefault(); e.stopPropagation();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+    el.classList.add('fente-active');
+  });
+  el.addEventListener('dragleave', () => el.classList.remove('fente-active'));
+  el.addEventListener('drop', e => {
+    if (!actif()) return;
+    e.preventDefault(); e.stopPropagation();
+    el.classList.remove('fente-active');
+    deposer();
+    blockDragInfo = null; blockDragSrcChap = null; noteDragInfo = null;
+    renderScenes(); updateAllStats(); scheduleSave();
+  });
+}
+
+// Fente du texte, après le bloc « apres » de la scène siCible.
+function deposerDansTexte(siCible, apres) {
+  const cible = getScenes()[siCible];
+  if (!cible) return;
+  if (noteDragInfo) {
+    // Une note glissée devient un nouveau bloc à cet endroit.
+    const b = getScenes()[noteDragInfo.sceneIdx]?.blocks.find(x => x.id === noteDragInfo.blockId);
+    if (!b || !(b.note || '').trim()) return;
+    cible.blocks.splice(apres + 1, 0, { ...blocVide(), text: b.note });
+    b.note = '';
+    return;
+  }
+  if (!blockDragInfo) return;
+  const source = scenesSourceBloc();
+  const { sceneIdx: srcSi, blockIdx: srcBi } = blockDragInfo;
+  const memeScene = blocVientDeLaScene(siCible);
+  const [deplace] = source[srcSi].blocks.splice(srcBi, 1);
+  if (!deplace) return;
+  let pos = apres + 1;
+  if (memeScene && srcBi < pos) pos--;
+  // Un chapitre ne reste jamais sans bloc éditable (invariant I3)
+  if (!memeScene && source[srcSi].blocks.length === 0) source[srcSi].blocks = [blocVide()];
+  cible.blocks.splice(pos, 0, deplace);
+}
+
+// Fente des notes : le texte du bloc glissé devient une nouvelle note,
+// portée par un bloc inséré après le bloc « apres » de la scène siCible.
+function deposerDansNotes(siCible, apres) {
+  if (!blockDragInfo) return;
+  const cible = getScenes()[siCible];
+  const source = scenesSourceBloc();
+  const { sceneIdx: srcSi, blockIdx: srcBi } = blockDragInfo;
+  const src = source[srcSi]?.blocks[srcBi];
+  if (!cible || !src || !(src.text || '').trim()) return;
+  const note = src.text;
+  src.text = '';
+  let pos = apres + 1;
+  // Le bloc d'origine, vidé de tout, disparaît plutôt que de laisser un trou.
+  const vide = !(src.title || '').trim() && !(src.note || '').trim() && !(src.images || []).length;
+  if (vide && source[srcSi].blocks.length > 1) {
+    source[srcSi].blocks.splice(srcBi, 1);
+    if (blocVientDeLaScene(siCible) && srcBi < pos) pos--;
+  }
+  cible.blocks.splice(pos, 0, { ...blocVide(), note });
+}
+
+/* Les fentes des notes se posent en calque, au niveau exact des fentes du
+   texte : insérées dans le flux, elles décaleraient chaque note de son bloc. */
+function poserFentesNotes() {
+  document.querySelectorAll('.fente-note').forEach(f => f.remove());
+  if (!blockDragInfo) return;
+  document.querySelectorAll('.scene-container').forEach(sc => {
+    const col = sc.querySelector('.scene-notes-col');
+    if (!col) return;
+    // Les fentes du texte viennent de s'agrandir : réaligner d'abord chaque
+    // note sur son bloc, pour que les fentes des notes tombent entre deux notes.
+    const cells = sc.querySelectorAll('.block-note-cell');
+    sc.querySelectorAll('.scene-blocks > .block-card').forEach((card, i) => {
+      if (cells[i]) cells[i].style.height = hauteurCelluleNote(card) + 'px';
+    });
+    const base = col.getBoundingClientRect().top;
+    sc.querySelectorAll('.add-here').forEach(ligne => {
+      const r = ligne.getBoundingClientRect();
+      const f = document.createElement('div');
+      f.className = 'fente-note';
+      f.style.top = (r.top - base) + 'px';
+      f.style.height = Math.max(r.height, 24) + 'px';
+      f.innerHTML = '<span>＋ Note ici</span>';
+      const si = parseInt(ligne.dataset.si), apres = parseInt(ligne.dataset.after);
+      armerFente(f, () => deposerDansNotes(si, apres));
+      col.appendChild(f);
+    });
+  });
 }
 
 function deplacerNoteVersTexte(sceneIdx, blockId) {
@@ -4817,10 +4953,12 @@ function renderScenes(){
         e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/plain','block');
         // Révèle les zones « nouveau chapitre ici » dans la liste des chapitres
         document.getElementById('page-workspace')?.classList.add('block-dragging');
+        setTimeout(poserFentesNotes, 0);
         setTimeout(()=>card.classList.add('dragging'),0);
       });
       card.addEventListener('dragend', ()=>{
         document.getElementById('page-workspace')?.classList.remove('block-dragging');
+        document.querySelectorAll('.fente-note').forEach(f=>f.remove());
         document.querySelectorAll('.chapter-insert').forEach(z=>z.classList.remove('active'));
         card.classList.remove('dragging'); card.setAttribute('draggable','false');
         document.querySelectorAll('.block-card').forEach(c=>c.classList.remove('drag-over-top','drag-over-bottom'));
@@ -4863,10 +5001,14 @@ function renderScenes(){
       // ── + Bloc ici ──
       if(bi < scene.blocks.length-1 || true){
         const addHere = document.createElement('div'); addHere.className='add-here';
-        addHere.innerHTML=`<button class="add-here-btn" data-si="${si}" data-after="${bi}">＋ Bloc ici</button>`;
+        addHere.dataset.si = si; addHere.dataset.after = bi;
+        addHere.innerHTML=`<button class="add-here-btn" data-si="${si}" data-after="${bi}">＋ Bloc ici</button><span class="fente-label">＋ Déposer ici</span>`;
         addHere.querySelector('button').addEventListener('click',function(){
           addBlock(parseInt(this.dataset.si), parseInt(this.dataset.after));
         });
+        // Pendant un glissement, la ligne devient une fente : un bloc s'y
+        // insère, une note y devient un nouveau bloc. Rien n'est écrasé.
+        armerFente(addHere, () => deposerDansTexte(si, bi));
         blocksCol.appendChild(addHere);
       }
     });
@@ -4894,6 +5036,7 @@ function renderScenes(){
         const b = getScenes()[si]?.blocks.find(x=>x.id===cell.dataset.bid);
         if(!b || !(b.note||'').trim()){ e.preventDefault(); return; }   // note vide : rien à déplacer
         noteDragInfo = { sceneIdx:si, blockId:cell.dataset.bid };
+        document.getElementById('page-workspace')?.classList.add('note-dragging');
         e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/plain','note');
         e.stopPropagation();
         setTimeout(()=>cell.classList.add('dragging'),0);
@@ -4901,6 +5044,7 @@ function renderScenes(){
       cell.addEventListener('dragend', ()=>{
         cell.classList.remove('dragging'); cell.setAttribute('draggable','false');
         noteDragInfo=null;
+        document.getElementById('page-workspace')?.classList.remove('note-dragging');
         document.querySelectorAll('.block-note-cell,.block-card').forEach(el=>el.classList.remove('note-drop-target'));
       });
 
@@ -5003,8 +5147,20 @@ function renderScenes(){
   applyNoteColW(loadNoteColW());
   // Aligner les hauteurs après que le DOM est stable
   setTimeout(attachNoteObservers, 30);
+  if (blockDragInfo) setTimeout(poserFentesNotes, 40);
   // Poser les calques de mentions sur les blocs qui en contiennent
   if (typeof refreshAllMentionLayers === 'function') refreshAllMentionLayers();
+}
+
+/* Hauteur de la cellule de note d'un bloc : le bloc lui-même, plus la ligne
+   « ＋ Bloc ici » qui le suit. Sans cette ligne, chaque note remontait un peu
+   plus que la précédente par rapport à son bloc. */
+function hauteurCelluleNote(card) {
+  const r = card.getBoundingClientRect();
+  const ligne = card.nextElementSibling;
+  if (!ligne || !ligne.classList.contains('add-here')) return r.height;
+  const st = getComputedStyle(ligne);
+  return ligne.getBoundingClientRect().bottom + parseFloat(st.marginBottom || 0) - r.top;
 }
 
 function syncNoteHeights() {
@@ -5015,7 +5171,7 @@ function syncNoteHeights() {
       const cells = sc.querySelectorAll('.block-note-cell');
       cards.forEach((card, i) => {
         if (!cells[i]) return;
-        cells[i].style.height = card.getBoundingClientRect().height + 'px';
+        cells[i].style.height = hauteurCelluleNote(card) + 'px';
       });
     });
   });
@@ -5033,12 +5189,13 @@ function attachNoteObservers() {
     cards.forEach((card, i) => {
       if (!cells[i]) return;
       // Sync initial
-      cells[i].style.height = card.getBoundingClientRect().height + 'px';
-      // Observer les changements de taille du bloc
+      cells[i].style.height = hauteurCelluleNote(card) + 'px';
+      // Observer les changements de taille du bloc et de la ligne qui le suit
       const ro = new ResizeObserver(() => {
-        cells[i].style.height = card.getBoundingClientRect().height + 'px';
+        cells[i].style.height = hauteurCelluleNote(card) + 'px';
       });
       ro.observe(card);
+      if (card.nextElementSibling?.classList.contains('add-here')) ro.observe(card.nextElementSibling);
       _noteObservers.push(ro);
     });
   });

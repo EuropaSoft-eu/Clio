@@ -1,6 +1,6 @@
 {
   "appName": "Clio",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "company": "EuropaSoft",
   "developer": "Yoann CRAMATTE",
   "website": "https://www.europasoft.eu",
@@ -8,6 +8,15 @@
   "copyright": "© 2026 EuropaSoft — Tous droits réservés",
   "description": "Clio est un environnement d'écriture conçu pour les auteurs qui pensent par fragments — scènes, idées, dialogues — avant de les assembler en œuvre. Chaque chapitre est un espace de travail vivant, réorganisable à volonté.",
   "changelog": [
+    {
+      "version": "1.0.4",
+      "date": "2026-10-05",
+      "changes": [
+        "Fentes d'insertion pendant un glissement : « ＋ Déposer ici » entre les blocs du texte, « ＋ Note ici » entre les notes — un bloc s'insère, une note devient un nouveau bloc, le texte d'un bloc devient une nouvelle note, sans rien écraser",
+        "Liste des chapitres : fentes « Nouveau chapitre ici » et « à la fin » agrandies et lisibles pendant le glissement d'un bloc",
+        "Correction : chaque note reste alignée sur son bloc (elle remontait un peu plus à chaque bloc)"
+      ]
+    },
     {
       "version": "1.0.3",
       "date": "2026-10-04",
