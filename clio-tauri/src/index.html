@@ -2469,6 +2469,7 @@ body::before {
     <div style="display:flex;gap:.5rem">
       <button class="topbar-btn" onclick="triggerOpenClio()" title="Ouvrir un fichier .clio">📂 Ouvrir</button>
       <button class="trash-topbar-btn" onclick="openTrash()" title="Corbeille">🗑 Corbeille <span class="trash-badge" id="trash-badge-lib" style="display:none"></span></button>
+      <button class="topbar-btn" id="btn-installer" hidden onclick="installerClio()" title="Installer Clio comme une application">⤓ Installer</button>
       <button class="topbar-btn" onclick="showPage('settings')" title="Paramètres">⚙ Paramètres</button>
     </div>
   </div>
@@ -3276,7 +3277,7 @@ const APP_CONFIG = {
   github:      "",
   technologie: "HTML · CSS · JavaScript",
   langue:      "Français",
-  build:       "2026-10-05-tauri"
+  build:       "2026-10-27-tauri"
 };
 /* Chargement d'AppInfo.json, une fois, au démarrage. Même chemin relatif sur
    le web (servi depuis src/, mis en cache par le service worker) et sous Tauri
@@ -9442,6 +9443,72 @@ if (!SOUS_TAURI && 'serviceWorker' in navigator && location.protocol.startsWith(
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./service-worker.js').catch(() => {});
   });
+}
+
+/* ═══════════════════ INSTALLATION EN APPLICATION (PWA) ═══════════════════
+   Le bouton « Installer » de la bibliothèque n'apparaît que là où il sert :
+   - Chrome, Edge, Android : le navigateur signale par beforeinstallprompt
+     que Clio est installable ; le bouton ouvre alors sa fenêtre d'installation.
+   - Safari (iPhone, iPad, Mac) : pas d'installation par script ; le bouton
+     indique le geste à faire dans le menu de Safari.
+   Jamais sous Tauri, en file:// ni quand Clio tourne déjà installée.
+   ═══════════════════════════════════════════════════════════════════════ */
+let invitationInstallation = null;
+
+function clioEstInstallee() {
+  return matchMedia('(display-mode: standalone)').matches
+      || matchMedia('(display-mode: window-controls-overlay)').matches
+      || navigator.standalone === true;
+}
+
+/* 'ios' (iPhone, iPad — y compris l'iPad qui se dit Mac), 'mac' (Safari
+   ordinateur), ou null quand le navigateur n'est pas Safari. */
+function safariInstallable() {
+  const ua = navigator.userAgent;
+  const estSafari = /Safari\//.test(ua) && !/Chrome|Chromium|CriOS|FxiOS|EdgiOS|Edg\/|OPR\//.test(ua);
+  const ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  if (ios) return estSafari ? 'ios' : null;   // sur iOS, seul Safari sait installer
+  return estSafari && /Macintosh/.test(ua) ? 'mac' : null;
+}
+
+function afficherBoutonInstaller(visible) {
+  const b = document.getElementById('btn-installer');
+  if (b) b.hidden = !visible;
+}
+
+async function installerClio() {
+  if (invitationInstallation) {
+    const invitation = invitationInstallation;
+    invitationInstallation = null;            // une invitation ne sert qu'une fois
+    invitation.prompt();
+    const { outcome } = await invitation.userChoice;
+    if (outcome === 'accepted') afficherBoutonInstaller(false);
+    return;
+  }
+  const safari = safariInstallable();
+  if (safari === 'ios') {
+    showAlert({ icon:'⤓', title:'Installer Clio',
+      msg:"Dans Safari, touchez le bouton Partager (le carré fléché), puis « Sur l'écran d'accueil ». Clio s'ouvrira ensuite comme une application, même sans connexion." });
+  } else if (safari === 'mac') {
+    showAlert({ icon:'⤓', title:'Installer Clio',
+      msg:"Dans Safari (macOS 14 et plus), menu Fichier → « Ajouter au Dock ». Clio s'ouvrira ensuite dans sa propre fenêtre, même sans connexion." });
+  } else {
+    showAlert({ icon:'⤓', title:'Installer Clio',
+      msg:"Utilisez l'icône d'installation de la barre d'adresse, ou le menu du navigateur → « Installer Clio » / « Ajouter à l'écran d'accueil »." });
+  }
+}
+
+if (!SOUS_TAURI && location.protocol === 'https:' && !clioEstInstallee()) {
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();                       // garder l'invitation pour le bouton
+    invitationInstallation = e;
+    afficherBoutonInstaller(true);
+  });
+  window.addEventListener('appinstalled', () => {
+    invitationInstallation = null;
+    afficherBoutonInstaller(false);
+  });
+  if (safariInstallable()) afficherBoutonInstaller(true);
 }
 </script>
 </body>

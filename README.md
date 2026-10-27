@@ -39,14 +39,18 @@ régulièrement.
 
 Ouverte depuis le lien en ligne, Clio s'installe comme un logiciel : fenêtre
 propre, icône sur le bureau ou l'écran d'accueil, fonctionnement hors ligne
-ensuite.
+ensuite. Le bouton **⤓ Installer** (en haut à droite de la bibliothèque) vous
+guide ; il n'apparaît que sur les navigateurs qui savent installer.
 
 | Appareil | Comment faire |
 |---|---|
-| Chrome, Edge (ordinateur) | Icône d'installation dans la barre d'adresse |
-| Android | Google Play, ou menu du navigateur → *Ajouter à l'écran d'accueil* |
+| Chrome, Edge (ordinateur) | Bouton *Installer* de Clio, ou icône d'installation dans la barre d'adresse |
+| Android | Bouton *Installer*, Google Play, ou menu du navigateur → *Ajouter à l'écran d'accueil* |
 | iPhone, iPad | Safari → bouton *Partager* → *Sur l'écran d'accueil* |
 | Mac (Safari, macOS 14 et plus) | Menu *Fichier* → *Ajouter au Dock* |
+
+Firefox pour ordinateur ne sait pas installer d'application web : Clio y
+fonctionne normalement, sans bouton *Installer*.
 
 Une fois installée, l'application se met à jour d'elle-même au lancement qui
 suit la publication d'une nouvelle version.

@@ -1,6 +1,6 @@
 {
   "appName": "Clio",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "company": "EuropaSoft",
   "developer": "Yoann CRAMATTE",
   "website": "https://www.europasoft.eu",
@@ -8,6 +8,14 @@
   "copyright": "© 2026 EuropaSoft — Tous droits réservés",
   "description": "Clio est un environnement d'écriture conçu pour les auteurs qui pensent par fragments — scènes, idées, dialogues — avant de les assembler en œuvre. Chaque chapitre est un espace de travail vivant, réorganisable à volonté.",
   "changelog": [
+    {
+      "version": "1.0.5",
+      "date": "2026-10-27",
+      "changes": [
+        "Version web : bouton « ⤓ Installer » dans la bibliothèque — sous Chrome, Edge et Android il ouvre la fenêtre d'installation du navigateur ; sous Safari (iPhone, iPad, Mac) il indique le geste à faire",
+        "Le bouton n'apparaît que là où l'installation est possible, et disparaît une fois Clio installée"
+      ]
+    },
     {
       "version": "1.0.4",
       "date": "2026-10-05",
