@@ -1,9 +1,60 @@
-# Clio — L'atelier de l'écrivain
+# Clio
 
-Traitement de texte pour romanciers, fondé sur l'écriture par fragments :
-l'auteur écrit des morceaux — une scène, une réplique, une idée — puis les
-assemble et les réordonne. Le texte final se reconstitue par concaténation à la
-lecture et à l'export.
+**[▶ Ouvrir l'application](https://yoann-cramatte.github.io/Clio/)**
+
+L'atelier de l'écrivain : un traitement de texte pour romanciers, fondé sur
+l'écriture par fragments. Vous écrivez des morceaux — une scène, une réplique,
+une idée — puis vous les assemblez et les réordonnez. Le livre se reconstitue
+de lui-même à la lecture et à l'export. Rien à inscrire : le lien ouvre
+l'atelier et vous écrivez dans la seconde. Sur Android, Clio existe aussi sur
+Google Play.
+
+*Clio, muse de l'histoire, sœur de Calliope.*
+
+EuropaSoft · Yoann CRAMATTE · © 2025-2026, tous droits réservés
+
+## Vos textes restent chez vous
+
+- **Aucun compte**, aucune inscription.
+- **Aucun serveur** ne reçoit vos textes : ils ne quittent jamais votre appareil.
+- **Aucun pistage**, aucune publicité, aucun cookie tiers.
+- Le seul échange réseau est le chargement de l'application elle-même depuis son
+  site. Ensuite, tout se passe sur votre machine, même sans connexion.
+
+Vos livres sont enregistrés dans le navigateur, et dans les fichiers `.clio`
+que vous sauvegardez vous-même. Le fichier `.clio` est la seule copie qui
+survive à l'effacement des données du navigateur : enregistrez-le
+régulièrement.
+
+## Autonome et hors ligne
+
+- **Zéro service extérieur** : polices et bibliothèque ZIP sont livrées avec
+  l'application.
+- **Hors ligne** : une fois ouverte ou installée, Clio démarre sans réseau.
+- **Format ouvert** : le `.clio` est une archive ZIP documentée
+  ([`FORMAT-CLIO.md`](FORMAT-CLIO.md)) ; vos livres ne sont prisonniers
+  d'aucun logiciel.
+
+## L'installer comme une application
+
+Ouverte depuis le lien en ligne, Clio s'installe comme un logiciel : fenêtre
+propre, icône sur le bureau ou l'écran d'accueil, fonctionnement hors ligne
+ensuite.
+
+| Appareil | Comment faire |
+|---|---|
+| Chrome, Edge (ordinateur) | Icône d'installation dans la barre d'adresse |
+| Android | Google Play, ou menu du navigateur → *Ajouter à l'écran d'accueil* |
+| iPhone, iPad | Safari → bouton *Partager* → *Sur l'écran d'accueil* |
+| Mac (Safari, macOS 14 et plus) | Menu *Fichier* → *Ajouter au Dock* |
+
+Une fois installée, l'application se met à jour d'elle-même au lancement qui
+suit la publication d'une nouvelle version.
+
+L'installation exige une adresse `https://` : c'est une règle des navigateurs,
+pas un choix de Clio.
+
+## Ce qu'on peut faire
 
 ```
 LIVRE ─┬─ CHAPITRE ─┬─ SCÈNE ─┬─ BLOC ─┬─ titre (optionnel)
@@ -18,14 +69,45 @@ LIVRE ─┬─ CHAPITRE ─┬─ SCÈNE ─┬─ BLOC ─┬─ titre (option
        └─ métadonnées (titre, auteur, genre, objectif, format)
 ```
 
-Le bloc est l'unité de pensée : il se déplace dans sa scène, vers une autre
-scène, vers un autre chapitre.
+- **Écrire par blocs** : le bloc est l'unité de pensée. Il se glisse dans sa
+  scène, vers une autre scène, vers un autre chapitre — à la souris comme au
+  doigt. Pendant le glissement, des fentes « Déposer ici » montrent où il
+  s'insérera, sans rien écraser.
+- **Notes en marge**, couleur d'accent et images pour chaque bloc ; une note
+  peut devenir un bloc, et l'inverse.
+- **Personnages et lieux** : fiches dédiées, et mention dans le texte par `@`
+  (personnage) ou `#` (lieu).
+- **Sections de livre** : chapitre, préface, avant-propos, prologue, épilogue,
+  dédicace, exergue, remerciements, glossaire, index, bibliographie,
+  mentions légales, couvertures, section libre…
+- **Bibliothèque** rangée en trois rayons : Brouillon, En cours, Terminé.
+- **Mode focus** : barres latérales masquées, seul le texte reste à l'écran.
+- **Mode lecture** : le livre se relit d'une traite, en thème clair, sépia ou
+  sombre, avec la taille de police réglable.
+- **Écriture suivie** : objectif quotidien de mots, jours consécutifs,
+  historique des sept derniers jours et records.
+- **Recherche** dans tout le livre (Ctrl+F).
+- **Export** du livre entier ou du chapitre en cours : TXT, Markdown,
+  HTML / Word, EPUB, PDF — avec trois profils (Manuscrit, Brouillon, Lecture
+  bêta) et le choix des titres, séparateurs et notes à inclure.
+- **Sécurité** : corbeille pour les livres, chapitres, scènes, blocs,
+  personnages et lieux supprimés ; instantanés automatiques à l'ouverture ou
+  toutes les heures.
+- **Apparence** : cinq thèmes (Parchemin, Parchemin sombre, Caramel, Sauge,
+  Vibrant), choix de la police et de sa taille. Les réglages s'exportent.
 
-EuropaSoft · Yoann CRAMATTE · © 2025-2026, tous droits réservés
+## Pour les assistants IA
 
-**Essayer Clio dans le navigateur :** https://yoann-cramatte.github.io/Clio/ —
-installable comme application (PWA) sur ordinateur, tablette et téléphone, et
-utilisable hors ligne. Sur Android, Clio existe aussi sur Google Play.
+- **Une seule source** : `clio-tauri/src/index.html` contient toute
+  l'application. Toute correction se fait là, jamais dans une copie propre à
+  une plateforme.
+- **Le format `.clio`** est normé par [`FORMAT-CLIO.md`](FORMAT-CLIO.md), qui
+  suffit à lire ou produire un fichier sans le code de Clio.
+- **La version** n'existe qu'à un endroit : `clio-tauri/src/AppInfo.json`
+  (avec le journal des versions).
+- **Avant toute modification** de l'empaquetage : lire
+  `clio-tauri/docs/PLATEFORMES.md`. Avant tout envoi : `npm test` dans
+  `clio-tauri/`.
 
 > **Licence.** Ce dépôt est public pour consultation uniquement. Le code n'est
 > pas libre : toute copie, modification, redistribution ou réutilisation est
@@ -34,22 +116,14 @@ utilisable hors ligne. Sur Android, Clio existe aussi sur Google Play.
 
 ---
 
-## Vos textes vous appartiennent
-
-Clio ne collecte aucune donnée. Les livres, les notes et les réglages restent
-sur l'appareil de l'auteur et dans les fichiers `.clio` qu'il enregistre
-lui-même. Rien n'est transmis. L'application fonctionne sans compte et sans
-connexion — c'est vérifiable : elle ne contient aucun appel réseau.
+## Pour les développeurs
 
 Sur l'appareil, les livres et la corbeille sont enregistrés dans la base
 IndexedDB `clio-livres` du navigateur ou du WebView (depuis 1.0.2 ; avant,
 dans `localStorage`, dont le quota saturait vite). Les réglages restent dans
-`localStorage`. Le fichier `.clio` demeure la seule copie qui survive à
-l'effacement des données du navigateur.
+`localStorage`.
 
----
-
-## Une seule source, plusieurs cibles
+### Une seule source, plusieurs cibles
 
 `clio-tauri/src/index.html` est **la base commune**. Ce fichier unique contient
 toute l'application — structure, style et code. Il sert à la fois la version
@@ -66,7 +140,7 @@ drapeau vaut `false` et le comportement d'origine s'applique. **Toute correction
 se fait dans la base commune**, jamais dans une copie propre à une plateforme :
 une correction faite ailleurs ne profiterait qu'à une seule cible.
 
-### Ce que le HTML embarque
+#### Ce que le HTML embarque
 
 L'application ne dépend d'aucun service extérieur. JSZip et les trois familles
 de polices sont livrés avec elle, dans `vendor/` et `fonts/`. Le fichier
@@ -74,7 +148,7 @@ de polices sont livrés avec elle, dans `vendor/` et `fonts/`. Le fichier
 
 ---
 
-## Organisation du dépôt
+### Organisation du dépôt
 
 ```
 clio-tauri/
@@ -101,7 +175,7 @@ Les sorties de compilation ne sont pas versionnées : `web/`, `target/`,
 
 ---
 
-## Déployer la version web
+### Déployer la version web
 
 ```bash
 cd clio-tauri
@@ -129,7 +203,7 @@ lancement suivant, l'ancien cache étant écarté automatiquement.
 
 ---
 
-## Compiler l'application Android
+### Compiler l'application Android
 
 ```bash
 cd clio-tauri
@@ -144,7 +218,7 @@ la configuration d'empaquetage.
 
 ---
 
-## Lancer les tests
+### Lancer les tests
 
 ```bash
 cd clio-tauri
@@ -174,7 +248,7 @@ reste à vérifier à la main.
 
 ---
 
-## Le format `.clio`
+### Le format `.clio`
 
 Un `.clio` contient une œuvre et une seule : le livre, ses chapitres, ses
 scènes, ses blocs et ses images, dans une archive ZIP.
